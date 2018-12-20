@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * Determines the behavior for a goblin.
@@ -16,13 +16,16 @@ public class GoblinAI extends CreatureAI {
 	public void onUpdate(){
 		if (canRangedWeaponAttack(player)) {
 			creature.rangedAttack(player);
+			destination = player.location();
 		}
 		else if (canThrowAt(player)) {
 			creature.throwItem(getWeaponToThrow(), player.location());
+			destination = player.location();
 		}
 		else if (creature.canSee(player.location())) {
-			hunt(player);
-		}
+			hunt(player.location());
+		} else if (destination != null)
+			hunt(destination);
 		else if (canPickup()) {
 			creature.pickup();
 		} else {

@@ -1,4 +1,4 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.event.KeyEvent;
 import asciiPanel.AsciiPanel;

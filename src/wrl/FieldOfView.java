@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.awt.Color;
 /**
@@ -35,8 +35,10 @@ public class FieldOfView {
 	 * @param p - The point that wants to know its color
 	 * @return color of tile adjusted for visibility
 	 */
-	public Color visibleColor(Point p) {
-		Color cw = world.color(p);
+	public Color visibleColor(Point p, Creature player) {
+		if (range == 0)
+			return Color.DARK_GRAY.darker();
+		Color cw = world.color(p, player);
 		if (!isVisible(p)) {
 			return cw;
 		}
@@ -99,6 +101,8 @@ public class FieldOfView {
 	 * @param r - the radial distance from (@code location) that can be viewed
 	*/
 	public void update(Point location, int r) {
+		if (r==0)
+			return;
 		depth = location.z;
 		visibility = new int[world.width()][world.height()];
 		range = r;

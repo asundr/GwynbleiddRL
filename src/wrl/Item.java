@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -11,23 +11,10 @@ import java.util.List;
  * @author Arun Sundaram
  *
  */
-public class Item implements Updatable {
+public class Item extends Entity {
 	
-	private String name;
-	/** Returns the name of this Item. */
-	public String name() { return name; }
-	
-	private char glyph;
-	/** Returns the {@code char} symbol to display */
-	public char glyph() { return glyph; }
-	
-	private Color color;
-	/** Returns the {@linkplain Color} of the glyph. */
-	public Color color() { return color; }
-	
-	private Point location;
 	/** Returns the location of this item in the world, the container it's contained in or {@code null} if neither. */
-	public Point location() { return container == null ? ( location == null ? null : new Point(location) ) : container.location(); }
+//	public Point location() { return container == null ? ( super.location() == null ? null : super.location() ) : container.location(); }
 	
 	private Creature container;
 	/** Returns the container this Item is located in or {@code null} if not located in a container. */
@@ -42,23 +29,30 @@ public class Item implements Updatable {
 	public void  refreshAP() { actionPoints += 100; }
 	
 	/** Moves this Item to the passed {@code location}. Calls {@link #onContainerChange(Creature)} with a {@code null} argument. */
-	public void relocate(World world, Point location) {
+	public void relocate(Point location) {
 		onContainerChange(null);
 		if (isInContainer())
 			this.container.inventory().remove(this);
+		else if (location() != null) {
+			world.remove(this);
+		}
+		setLocation( world.addAtEmptySpace(this, location) );
 		this.container = null;
-		this.location = world.addAtEmptySpace(this, new Point(location));
 	}
 	
+	public void relocate(World world, Point location) { relocate(location); }
+	
+	public void relocate(World world, Creature container) { relocate(container); }
+	
 	/** Moves this Item to the passed {@code container}. Calls {@link #onContainerChange(Creature)} with {@code container}. */
-	public void relocate(World world, Creature container) {
+	public void relocate(Creature container) {
 		onContainerChange(container);
 		if (isInContainer()) {
 			this.container.inventory().remove(this);
-		} else if (location != null) {
+		} else if (location() != null) {
 			world.remove(this);
 		}
-		this.location = null;
+		setLocation(null);
 		container.inventory().add(this);
 		this.container = container;
 	}
@@ -121,36 +115,53 @@ public class Item implements Updatable {
 		writtenSpells.add(new Spell(name, manaCost, radius, degree, delivery, effect));
 	}
 	
+	public void addWrittenSpell(String name, int manaCost, Spell.Delivery delivery, Hazard hazard) {
+		addWrittenSpell(name, manaCost, 1, 360, delivery, hazard);
+	}
+	public void addWrittenSpell(String name, int manaCost, double radius, int degree, Spell.Delivery delivery, Hazard hazard) {
+		writtenSpells.add(new Spell(name, manaCost, radius, degree, delivery, hazard));
+	}
+	public void addWrittenSpell(Spell spell) {
+		writtenSpells.add(spell);
+	}
+	
 	private String appearance;
 	/** Returns the appearance of this Item. */
 	public String appearance() { return appearance == null ? name() : appearance; }
 	
 	/** {@code appearance} defaults to {@code null}.
 	 * @see #Item(String, char, Color, String) */
-	public Item(String name, char glyph, Color color) {
-		this(name, glyph, color, null);
+	public Item(World world, String name, char glyph, Color color) {
+		this(world, name, glyph, color, null);
 	}
 	
 	/**
+	 * @param world - the World this Item inhabits
 	 * @param name - The name of this Item.
 	 * @param glyph - the {@code char} symbol for display
 	 * @param color - the {@linkplain Color} of the glyph
 	 * @param appearance - The description of this Item.
 	 */
-	public Item(String name, char glyph, Color color, String appearance) {
-		this.name = name;
-		this.glyph = glyph;
-		this.color = color;
-		container = null;
-		location = null;
-		this.thrownAttackValue = 1;
-		writtenSpells = new ArrayList<Spell>();
+	public Item(World world, String name, char glyph, Color color, String appearance) {
+		super(world, name, glyph, color, null);
+		this.writtenSpells = new ArrayList<Spell>();
 		this.appearance = appearance;
+		this.thrownAttackValue = 1;
 	}
 	
 	public void update() {}
 	
-	public boolean updatePending() { return actionPoints != 0; }
+	public void modifyAP(int amount) {
+		if (amount != 0) {
+			world.cancelUpdate(this);
+			actionPoints += amount;
+			world.scheduleUpdate(this);
+		}
+	}
+	
+	public boolean updatePending() {
+		return actionPoints != 0;
+	}
 
 	/** Sets the {@linkplain Creature} who threw this Item. Used to identify the caster this Item's {@linkplain Effect}s. */
 	public void setThrower(Creature thrower) {
@@ -212,4 +223,13 @@ public class Item implements Updatable {
 		return quaffEffect != null;
 	}
 
+	public boolean equals(Object other) {
+		if (this == other)
+			return true;
+		if ( !(other instanceof Item) )
+			return false;
+		Item o = (Item) other;
+		return this.name.equals(o.name);
+	}
+	
 }

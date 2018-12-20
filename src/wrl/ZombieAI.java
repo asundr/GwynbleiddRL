@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * Determines the behavior of a zombie.
@@ -17,7 +17,9 @@ public class ZombieAI extends CreatureAI {
 		if (Math.random() < 0.25) {
 			creature.stay();
 		} else if (canSee(player.location())) {
-			hunt(player);
+			hunt(player.location());
+		} else if (destination != null ) {
+			hunt(destination);
 		} else {
 			wander();
 		}

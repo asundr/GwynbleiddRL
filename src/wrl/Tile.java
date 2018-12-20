@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.awt.Color;
 import asciiPanel.AsciiPanel;

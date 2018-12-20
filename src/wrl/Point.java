@@ -1,8 +1,10 @@
-package rltut;
+package wrl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A point in 3-dimensional space.
@@ -11,9 +13,14 @@ import java.util.List;
  */
 public class Point {
 	
-	public int x;
-	public int y;
-	public int z;
+	public final int x;
+	public final int y;
+	public final int z;
+	
+	/** Constructs a point at the origin. */
+	public Point() {
+		this(0, 0, 0);
+	}
 	
 	/**
 	 * Constructs a point at the passed coordinates.
@@ -35,15 +42,31 @@ public class Point {
 		this(p.x, p.y, p.z);
 	}
 	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + x;
-		result = prime * result + y;
-		result = prime * result + z;
-		return result;
-	}
+	private static final Map<Integer, Point> neighborMap;
+    static {
+        Map<Integer, Point> map = new HashMap<Integer, Point>(); 
+        map.put(0, new Point(1, 0, 0));
+        map.put(1, new Point(1, 1, 0));
+        map.put(2, new Point(0, 1, 0));
+        map.put(3, new Point(-1, 1, 0));
+        map.put(4, new Point(-1, 0, 0));
+        map.put(5, new Point(-1, -1, 0));
+        map.put(6,  new Point(0, -1, 0));
+        map.put(7, new Point(1, -1, 0));
+        neighborMap = Collections.unmodifiableMap(map);
+    }
+    
+    /** Returns the neighboring point corresponding to the passed octant modulo 8. 
+     * @see <a href"https://en.wikipedia.org/wiki/Octant_(plane_geometry)">Wikipedia - Octant</a href>
+     */
+    public Point neighbor(int octant) {
+    	return this.add( neighborMap.get((octant+8)%8) );
+    }
+    
+    /** Returns the neighboring point corresponding to the passed degree. */
+    public Point neighbor(double degree) {
+    	return neighbor( (int) Math.round(degree/45.0) );
+    }
 	
 	/**
 	 * Returns eight neighboring Points in random order
@@ -62,6 +85,46 @@ public class Point {
 		return neighbors;
 	}
 	
+	/** Returns a new Point equal to subtracting the components of {@code p} from {@code this}. */
+	public Point subtract(Point p) {
+		return new Point(x - p.x, y - p.y, z - p.z);
+	}
+	
+	/** @see #subtract(Point) */
+	public Point subtract(int dx, int dy, int dz) {
+		return subtract(new Point(dx, dy, dz));
+	}
+	
+	/** Returns a new Point equals to adding the components of {@code p} to {@code this}.*/
+	public Point add(Point p) {
+		return new Point(x + p.x, y + p.y, z + p.z);
+	}
+	
+	/** @see #add(Point) */
+	public Point add(int dx, int dy, int dz) {
+		return add(new Point (dx , dy, dz));
+	}
+	
+	/** Returns the magnitude of a line from the origin to this point in the XY plane. */
+	public double magnitudeXY() {
+		return Math.sqrt(x*x + y*y);
+	}
+	
+	/** Returns the dot product of lines from {@code (0,0)}  to {@code this} and {@code p} in the XY plane.  */
+	public int scalarProductXY(Point p) {
+		return x*p.x + y*p.y;
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + x;
+		result = prime * result + y;
+		result = prime * result + z;
+		return result;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -74,24 +137,9 @@ public class Point {
 		return x == other.x && y == other.y && z == other.z;
 	}
 	
-	/** Returns a new Point equal to subtracting the components of {@code p} from {@code this}. */
-	public Point subtract(Point p) {
-		return new Point(x - p.x, y - p.y, z - p.z);
-	}
-	
-	/** Returns a new Point equals to adding the components of {@code p} to {@code this}.*/
-	public Point add(Point p) {
-		return new Point(x + p.x, y + p.y, z + p.z);
-	}
-	
-	/** Returns the magnitude of a line from the origin to this point in the XY plane. */
-	public double magnitudeXY() {
-		return Math.sqrt(x*x + y*y);
-	}
-	
-	/** Returns the dot product of lines from {@code (0,0)}  to {@code this} and {@code p} in the XY plane.  */
-	public int scalarProductXY(Point p) {
-		return x*p.x + y*p.y;
+	@Override
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ")";
 	}
 	
 }

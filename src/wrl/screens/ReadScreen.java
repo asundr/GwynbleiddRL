@@ -1,7 +1,10 @@
-package rltut.screens;
+package wrl.screens;
 
-import rltut.Creature;
-import rltut.Item;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+
+import wrl.Creature;
+import wrl.Item;
 
 /**
  * This class extends {@linkplain InventoryBasedScreen}. Allows player to select a spellbook to read.
@@ -24,6 +27,26 @@ public class ReadScreen extends InventoryBasedScreen {
 		super(player);
 		this.sx = sx;
 		this.sy = sy;
+	}
+	
+	@Override
+	protected ArrayList<String> getList(){
+		ArrayList<String> list = super.getList();
+		Item spellbook = player.knownSpells();
+		if (spellbook != null) {
+			String line = "1" + " - " + spellbook.glyph() + " " +player.nameOf(spellbook);
+			list.add(0, line);
+		}
+		return list;
+	}
+	
+	@Override
+	public Screen respondToUserInput(KeyEvent key) {
+		char c = key.getKeyChar();
+		if (c == '1' && player.knownSpells() != null)
+			return use(player.knownSpells());
+		else
+			return super.respondToUserInput(key);
 	}
 
 	@Override

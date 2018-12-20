@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /** 
  * The Updatable interface is implemented by classes that can be updated by the {@linkplain EventOrganizer}.
@@ -11,6 +11,9 @@ public interface Updatable {
 	
 	/** Returns the current AP score. */
 	public int ap();
+	
+	/** Modifies AP by {@code amount}. If amount is non-zero the creature is re-added to the {@linkplain EventOrganizer} queue. */
+	public void modifyAP(int amount);
 	
 	/** Increases the AP score without notifying the EventOrganizer to reorder the queue.
 	 * This should be called by the EventOrganizer once every updatable has exhausted its AP. */

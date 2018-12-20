@@ -1,8 +1,8 @@
-package rltut.screens;
+package wrl.screens;
 
-import rltut.Creature;
-import rltut.Line;
-import rltut.Point;
+import wrl.Creature;
+import wrl.Line;
+import wrl.Point;
 
 /**
  * This class extends {@linkplain TargetBasedScreen}. It allows the player to fire a ranged weapon at a target.

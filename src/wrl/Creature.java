@@ -1,8 +1,11 @@
-package rltut;
+package wrl;
 
 import java.awt.Color;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.function.Predicate;
 
 /**
  * This class represents an {@linkplain World} entity whose behavior is defined by a {@linkplain CreatureAI}.
@@ -11,28 +14,14 @@ import java.util.List;
  * @author Arun Sundaram
  *
  */
-public class Creature implements Updatable, ObserverFOV{
-	private World world;
+public class Creature extends Entity implements ObserverFOV {
 	
 	private CreatureAI ai;
 	/** Sets the {@linkplain CreatureAI} for this creature. */
 	public void setCreatureAI (CreatureAI ai) { this.ai = ai; }
-	
-	private int x;
-	/** Returns the horizontal locaiton of this creature. */
-	public int x() { return x; }
-	
-	private int y;
-	/** Returns the vertical location of this creature. */
-	public int y() { return y; }
-	
-	private int z;
-	/** Returns the depth of this creature. */
-	public int z() { return z; }
-	
-	/** Returns the location of the creature as a {@linkplain Point}. */
-	public Point location() { return new Point(x, y, z); }
-	
+	/** Returns the ai controlling this creature. */
+	public CreatureAI ai() { return ai; }
+
 	private int maxHP;
 	/** Returns the maximum amount of health. */
 	public int maxHP() {  return maxHP;	}
@@ -66,21 +55,71 @@ public class Creature implements Updatable, ObserverFOV{
     private int regenManaPer1000;
     /** Modifies the rate of mana regeneration by {@code amount} / 1000 update. */
     public void modifyRegenManaPer1000(int amount) { regenManaPer1000 += amount; }
-	
+    
+    
+    private int maxToxicity;
+    /** Returns the maximum toxicity. */
+    public int maxToxicity() { return Math.max(0,maxToxicity); }
+    /** Modifies the maximum amount of toxicity this can withstand. */
+    public void modifyMaxToxicity(int amount) {
+    	this.maxToxicity += amount;
+    }
+    
+    private int toxicity;
+    /** Returns the current toxicity level. */
+    public int toxicity() { return toxicity; }
+    /** Modifies the toxicity by the amount.  */
+    public void modifyToxicity(int amount) {
+    	toxicity += amount;
+    	toxicity = Math.max(0, toxicity);
+    }
+    
+    private int signIntensity;
+    /** Returns the current sign intensity. */
+    public int signIntensity() { return signIntensity; }
+    /** Modifies the sign intensity by {@code amount}. */
+    public void modifySignIntensity(int amount) { signIntensity += amount; System.out.println("WARNING: not implemented"); }
+    
     private int actionPoints;
     public int ap() { return actionPoints; }
     /** Modifies AP by {@code amount} inversely modified by speed. If amount is non-zero the creature is re-added to the {@linkplain EventOrganizer} queue. */
     public void modifyAP(int amount) { 
     	if (amount != 0 ) {
+    		world.cancelUpdate(this);
     		amount = (int) ( amount * (100.00 / Math.max(10, speed)) );
     		actionPoints += amount;
-    		world.updateQueue(this);
+    		world.scheduleUpdate(this);
     	}
     }
     public void refreshAP() {
     	actionPoints += 100;
+		regenerateHealth();
+		regenerateMana();
+//		modifyFood(-1);
     }
     
+    private Queue<Action> actions;
+    /** Adds a scheduled action. */
+    public void addAction(Action action) { this.actions.add(action); }
+    /** Clears the scheduled actions. */
+    public void clearActions() { actions.clear(); }
+    /** Returns true if this creatures has an action scheduled. */
+    public boolean actionPending() { return !actions.isEmpty(); }
+    
+	
+	private Effect ward;
+	/** Sets an effects at a protective ward on this creature. */
+	public void setWard(Effect ward) { this.ward = ward;}
+	/** Removes the protective ward from this Creature. */
+	public void removeWard() { ward = null; }
+    
+    private int poisonResistance;
+    /** Returns the potion resistance of this Creature. */
+    public int poisonResistance() {
+    	return Math.min(100, poisonResistance);
+    }
+    /** Modifies the Creature's poison resistance by {@code amount}. */
+    public void modifyPoisonResistance(int amount) { this.poisonResistance += amount; }
     
     // create a ModAV map
     public int meleeCost 	= -100;
@@ -105,6 +144,13 @@ public class Creature implements Updatable, ObserverFOV{
 	private List<Effect> effects;
 	/** Returns a {@linkplain List} of the {@linkplain Effect}s currently affecting this creature. */
 	public List<Effect> effects() { return effects; }
+	public void removeEffects(Predicate<Effect> predicate) {
+		for (int i=0; i<effects.size(); i++) {
+			if ( predicate.test(effects.get(i)) ){
+				effects.remove(i--).end(this);
+			}
+		}
+	}
 	
 	private int food;
 	/** Return the current found count. */
@@ -169,21 +215,22 @@ public class Creature implements Updatable, ObserverFOV{
 	/** Returns the name of the last method of damage. */
 	public String causeOfDeath() { return causeOfDeath; }
 	
-	private String name;
-	/** Returns name of this creature. */
-	public String name() { return name; }
-	
-	private char glyph;
-	/** Returns glyph to display creature. */
-	public char glyph() { return glyph; }
-	
-	private Color color;
-	/** Returns color of glyph. */
-	public Color color() { return color; }
-	
 	private Inventory inventory;
 	/** Returns the creature's {@linkplain Inventory}. */
 	public Inventory inventory() { return inventory; }
+	
+	private Item knownSpells;
+	/** Sets the spells inside of a spellbook Item to this Creature's known spells. */
+	public void setKnownSpells(Item spellbook) {
+		if (spellbook.writtenSpells() != null)
+			this.knownSpells = spellbook;
+		else
+			throw new IllegalArgumentException("The spellbook passed doesn't contain any spells");
+	}
+	/** Returns the known spells of this Creture as a spellbook item. */
+	public Item knownSpells() {
+		return knownSpells;
+	}
 	
 	private Item meleeWeapon;
 	/** Returns the currently wielded melee weapon {@linkplain Item}. */
@@ -207,15 +254,17 @@ public class Creature implements Updatable, ObserverFOV{
 	 * @param defense - base defense points
 	 */
 	public Creature(World world, String name, char glyph, Color color, int maxHP, int attack, int defense){
-	    this.world = world;
-	    this.name = name;
-	    this.glyph = glyph;
-	    this.color = color;
+		super(world, name, glyph, color, null);
+		setLocation(new Point(0, 0, -1));
+		effects = new ArrayList<Effect>();
+		actions = new ArrayDeque<Action>();
+		
 	    this.maxHP = maxHP;
 	    this.hp = maxHP;
-	    this.maxMana = 1000; 		// changeme
+	    this.maxMana = 100; 		// changeme
 	    this.mana = maxMana;
-	    this.maxFood = 1000;
+	    this.maxToxicity = 100;
+	    this.maxFood = 10000000;
 	    this.food = maxFood * 2 / 3;
 	    this.attackValue = attack;
 	    this.defenseValue = defense;
@@ -227,22 +276,30 @@ public class Creature implements Updatable, ObserverFOV{
 	    
 	    this.actionPoints = 0;
 	    this.speed = 100;
-	    
-	    z=-1;
-	    
-	    effects = new ArrayList<Effect>();
 	}
 	
 	public void update() {
 		updateEffects(); // move to refreshAP ?
+		if (toxicity > maxToxicity)
+			modifyHP(-5, "toxicity", this);
 		if (isDead())
 			return;
-		regenerateHealth();  // move to refreshAP ?
-		regenerateMana();  // move to refreshAP ?
-		modifyFood(-1);  // move to refreshAP ?
-		if (isDead())
-			return;
-		if (ap() > 0)
+		int ap = ap();
+		boolean bUpdate = true;
+		while (bUpdate && actionPending()) {
+			Action action = actions.remove();
+			action.perform(this);
+			if (ap != ap()) {
+				bUpdate = false;
+				break;
+			}
+		}
+//		regenerateHealth();  // move to refreshAP ?
+//		regenerateMana();  // move to refreshAP ?
+//		modifyFood(-1);  // move to refreshAP ?
+//		if (isDead())
+//			return;
+		if (bUpdate && ap() > 0)
 			ai.onUpdate();
 	}
 	
@@ -257,31 +314,46 @@ public class Creature implements Updatable, ObserverFOV{
 		regenHpCooldown -= regenHpPer1000;
 		if (regenHpCooldown < 0){
 			modifyHP(1);
-			modifyFood(-1);
+//			modifyFood(-1);
 			regenHpCooldown += 1000;
 		}
 	}
 	
 	/** Counts number of updates, replenishing a point of mana after enough have passed. */
 	private void regenerateMana() {
-		regenManaCooldown -= regenManaPer1000;
+		int amount = regenManaPer1000 / 1000;
+		if (regenManaPer1000 > 1000) {
+			regenManaCooldown -= regenManaPer1000 - 1000 * amount;;
+		} else {
+			regenManaCooldown -= regenManaPer1000;
+		}
 		if(regenManaCooldown < 0) {
-			modifyMana(1);
-			modifyFood(-1);
+			amount += 1;
+//			modifyFood(-1);
 			regenManaCooldown += 1000;
 		}
+		modifyMana(amount);
 	}
 	
 	/** Calls {@linkplain Effect#update(Creature)} on all active effects, removing those that have completed. */
 	public void updateEffects() {
 		List<Effect> done = new ArrayList<Effect>();
-		for (Effect effect : effects){
-			effect.update(this);
-			if (effect.isDone()) {
-				effect.end(this);
+//		for (Effect effect : effects){  //TODO check this
+//			effect.applyUpdate(this);
+//			if (effect.isDone()) {
+//				effect.end(this);
+//				done.add(effect);
+//			}
+//		}
+//		effects.removeAll(done);
+		for (int i=1; effects.size()-i >=0; i++) {
+			Effect effect = effects.get(effects.size()-i);
+			effect.applyUpdate(this);
+			if(effect.isDone())
 				done.add(effect);
-			}
 		}
+		for(Effect e : done)
+			e.end(this);
 		effects.removeAll(done);
 	}
 	
@@ -300,7 +372,7 @@ public class Creature implements Updatable, ObserverFOV{
 	 * @see World#dig(Point)*/
 	public void dig(int wx, int wy) {
 		modifyFood(-10);
-		world.dig( new Point(wx,wy,z));
+		world.dig( new Point(wx, wy, z()));
 		doAction("dig");
 		modifyAP(digCost);
 	}
@@ -330,9 +402,9 @@ public class Creature implements Updatable, ObserverFOV{
 	 * @param other - target creature
 	 * @param attack - attacking power
 	 * @param action - unformatted action text
-	 * @param params - paramaters for aciton text
+	 * @param params - parameters for action text
 	 */
-	private void commonAttack(Creature other, int attack, String action, Object ... params) {
+	public void commonAttack(Creature other, int attack, String action, Object ... params) {
 		modifyFood(-1);
 		
 		int amount = Math.max(0, attack - other.defenseValue());
@@ -355,13 +427,16 @@ public class Creature implements Updatable, ObserverFOV{
 	
 	/** Calculate and gain experience from a creature. */
 	public void gainXP(Creature other) {
-		int amount = other.maxHP + other.attackValue + other.defenseValue - level * 2;
+		int amount = other.attackValue + other.defenseValue - level * 2;
 		if (amount > 0)
 			modifyXP(amount);
 	}
 	
 	/** Modify food by {@code amount}. If creature eats more than max its max food increases at the expense of health. If food is less than one, the creature dies of starvation. */
 	public void modifyFood(int amount) {
+		//TODO disabled for balance
+		if (true) return;
+		
 		food += amount;
 		if (food > maxFood) {
 			maxFood += amount/2;
@@ -372,6 +447,26 @@ public class Creature implements Updatable, ObserverFOV{
 			food = 0;
 			modifyHP(-hp, "starvation", this);
 		}
+	}
+	
+	/** Modifies incoming damage before it is applied */
+	private int preDamage(int amount, String causeOfDeath, Creature aggressor) {
+		if (causeOfDeath != null && causeOfDeath.equals("poison")) {
+			if (poisonResistance() == 100)
+				return 0;
+			else
+				amount = (int) (amount * ((100 - poisonResistance()) / 100.0));
+		}
+		if (amount == 0)
+			return 0;
+		
+		if (ward != null) {
+			notify("The ward shatters!");
+			effects.remove(ward); 
+			removeWard();
+			return 0;
+		}
+		return amount;
 	}
 	
 	/**{@code aggressor} and {@code causeOfDeath} default to {@code null}.
@@ -397,6 +492,15 @@ public class Creature implements Updatable, ObserverFOV{
 		if (hp < 1)
 			return;
 		
+		if (amount == 0)
+			return;
+		
+		amount = preDamage(amount, causeOfDeath, aggressor);
+		if (amount == 0)
+			return;
+		
+		onHit(amount, causeOfDeath, aggressor);
+		
 		hp += amount;
 		this.causeOfDeath = causeOfDeath == null ? "unknown" : causeOfDeath;
 		if (hp > maxHP)
@@ -408,39 +512,58 @@ public class Creature implements Updatable, ObserverFOV{
 		}
 	}
 	
+	/** Calculates and a applies a knockback effect from a sources {@linkplain Point}. */
+	public void knockBack(Point source, double distance) {
+		if (isDead())
+			return;
+		Point dif = location().subtract(source);
+		Line line = new Line(x(), y(), x() + 2*dif.x, y() + 2*dif.y, z());
+		
+		Point newLoc = null;
+		for (Point p : line) {
+			if (p.equals(location()))
+				continue;
+			if (distance < 0 || !world.tile(p).isGround() || world.creature(p) != null)
+				break;
+			newLoc = p;
+			distance--;
+		}
+		
+		if (newLoc != null)
+			relocate(newLoc);
+	}
+	
+	/** Applies a stun effect to this Creature. {@code amount} modifies action points negatively. */
+	public void stun(int amount) {
+		doAction("stun");
+		modifyAP(-amount);
+	}
+	
+	/** Calls behavior of Effects that respond to detrimental hit events. */
+	protected void onHit(int amount, String causeOfDeath, Creature aggressor) {
+		for (Effect e : effects)
+			e.onHit(amount, causeOfDeath, aggressor, this);
+	}
+	
 	/** Creature is killed, leaving a corpse and removing the Creature from the {@linkplain World}. */
 	public void die() {
 		ai.die();
+		ai.deathDrop();
+		if ( !(ai instanceof PlantAI) )
+			StuffFactory.newBlood(world, location());
 		leaveCorpse();
 		doAction("die");
 		world.remove(this);
+		actionPoints = 0;   // prevents event organizer warning for no ap change
 	}
 	
 	/** Drops a corpse {@linkplain Item} at the current location along with this creature's {@linkplain Inventory} as Items. */
 	private void leaveCorpse() {
-		Item corpse = new Item(name + " corpse", '%', color) {
-			/** Schedules update if not in container or if {@code super.updatePending()} is satisfied. */
-			public boolean updatePending() {
-				return !isInContainer() && super.updatePending();
-			}
-			/** Resets AP when corpse is dropped into World. */
-			public void onContainerChange(Creature newContainer) {
-				if (newContainer != null)
-					return;
-				if (location() == null) {
-					setAP(-100 * 1000);
-					world.scheduleUpdate(this);					
-				}
-			}
-			/** Deletes corpse if AP is positive from {@linkplain Item#refreshAP()}. */
-			public void update() {
-				if (ap() > 0)
-					setAP(0);
-				world.remove(this);
-			}
-		};
-		corpse.modifyFoodValue(maxHP * 3);
-		corpse.relocate(world, location());
+		if ( !(ai instanceof PlantAI) ) {
+			Item corpse = new ItemDespawnable(world, name + " corpse", '%', color, 1000);
+			corpse.modifyFoodValue(maxHP * 3);
+			corpse.relocate(world, location());
+		}
 		for (Item item : inventory.items()) {
 			if (item != null) {
 				drop(item);
@@ -462,8 +585,8 @@ public class Creature implements Updatable, ObserverFOV{
 			return;
 		}
 		
-		Point next = new Point(x, y, mz + z);
-		Tile tile = world.tile(new Point(mx+x, my+y, z+mz));
+		Point next = location().add(0, 0, mz);
+		Tile tile = world.tile(location().add(mx, my, mz));
 		
 		if (mz == -1){
 			if (tile == Tile.STAIRS_DOWN) {
@@ -481,7 +604,7 @@ public class Creature implements Updatable, ObserverFOV{
 				doAction("try to go down but are stopped by the floor");
 		} 
 		else {
-			next = new Point(x + mx, y + my, z);
+			next = location().add(mx, my, 0);
 			Creature other = world.creature(next);
 			if (other == null) {
 				ai.onEnter(next, world.tile(next));
@@ -501,12 +624,10 @@ public class Creature implements Updatable, ObserverFOV{
 	/** Move this creature to the new location {@code p} and updates the {@linkplain World}'s creature location. */
 	public void relocate(Point p) { 
 		world.updateCreatureLocation(this, p);
-		this.x = p.x;
-		this.y = p.y;
-		this.z = p.z;
+		setLocation(p);
 	}
 	
-	/** Wait a turn. */
+	/** Wait a turn. Incurs AP cost. */
 	public void stay() {
 		modifyAP(waitCost);
 	}
@@ -568,7 +689,7 @@ public class Creature implements Updatable, ObserverFOV{
 	public void consume(Item item) {
 		if (item.foodValue() < 0)
 			notify("Gross!");
-		
+		modifyHP(item.foodValue()/20);
 		addEffect(item.quaffEffect());
 		modifyFood(item.foodValue());
 		inventory.remove(item);
@@ -579,8 +700,27 @@ public class Creature implements Updatable, ObserverFOV{
 	public void addEffect(Effect effect) {
 		if (effect == null)
 			return;
+		if (resists(effect))
+			return;
+		if (!effect.stackable()) {
+			for (int i=0; i<this.effects.size(); i++) {
+				Effect curr = this.effects.get(i);
+				if (curr.equals(effect)) {
+					if (curr.duration() < effect.duration()) {
+						curr.end(this);
+						effects.remove(i--);
+					} else
+						return;
+				}
+			}
+		}
 		effects.add(effect);
 		effect.start(this);
+	}
+	
+	/** Returns {@code true} if this Creature is immune to this {@linkplain Effect}. */
+	public boolean resists(Effect effect) {
+		return poisonResistance() == 100 &&  effect.isPoison();
 	}
 	
 	/** Unequips the {@linkplain Item}. */
@@ -629,9 +769,9 @@ public class Creature implements Updatable, ObserverFOV{
 	}
 	
 	/** Throws an {@linkplain Item} towards the location potentially attacking a creature. Will drop Item or break it if it's fragile.*/
-	public void throwItem(Item item, Point location) {
-		Point end = new Point(x, y, 0);
-		for (Point point : new Line(x, y, location.x, location.y)) {
+	public void throwItem(Item item, Point target) {
+		Point end = location();
+		for (Point point : new Line(x(), y(), target.x, target.y, target.z)) {
 			if (!tile(point).isGround())
 				break;
 			end = point;
@@ -639,11 +779,7 @@ public class Creature implements Updatable, ObserverFOV{
 				break;
 		}
 		
-		location.x = end.x;
-		location.y = end.y;
-		
-		Creature targetCreature = creature(location);
-		
+		Creature targetCreature = creature(end);
 		if (targetCreature != null) {
 			throwAttack(item, targetCreature);
 		} else {
@@ -656,48 +792,31 @@ public class Creature implements Updatable, ObserverFOV{
 			if (targetCreature == null)
 				notify("The " + nameOf(item)+ " shatters on impact with the ground.");
 		} else {
-			item.relocate(world, location);
+			item.relocate(world, end);
 		}
 	}
 	
 	/** Defaults {@code splash} to a 1x1 grid of {@code true}.
-	 * @see #castSpell(Spell, int, int, boolean[][]) */
+	 * @see #castSpell(Spell, int, int, Splash) */
 	public void castSpell(Spell spell, int x2, int y2) {
-		boolean[][] splash = {{true}};
-		castSpell(spell, x2, y2, splash);
+		castSpell(spell, x2, y2, new Splash());
 	}
 	
 	/**
-	 * Casts spell at target
+	 * Casts spell at target.
 	 * @param spell - spell to be cast
 	 * @param x2 - target's x position
 	 * @param y2 = target's y position
 	 * @param splash - grid of splash damage centered at {@code (x2, y2)}.
 	 */
-	public void castSpell(Spell spell, int x2, int y2, boolean[][] splash) {
+	public void castSpell(Spell spell, int x2, int y2, Splash splash) {
 		if (spell.manaCost() > mana) {
 			doAction("attempt to cast %s but don't have enough mana", spell.name());
 			return;
 		}
-		
-		List<Creature> targets = new ArrayList<Creature>();
-		for (int i=0; i<splash.length; i++) {
-			for (int j=0; j < splash.length; j++) {
-				Point p = new Point(x2 - splash.length/2 + i, y2 - splash.length/2 + j, z);
-				if (!splash[i][j] || world.creature(p) == null ) 
-					continue;
-				targets.add(world.creature(p));
-			}
-		}
-		
-		if (targets.size() > 0) {
-			modifyMana(-spell.manaCost());
-			for (Creature c : targets)
-				for (Effect e : spell.effects(this))
-					c.addEffect(e);
-			modifyAP(spellCost);	
-		}
-
+		spell.apply(new Point(x2, y2, z()), splash, world, this);
+		modifyMana(-spell.manaCost());
+		modifyAP(spellCost);	
 	}
 	
 	/**
@@ -746,7 +865,7 @@ public class Creature implements Updatable, ObserverFOV{
 				if (ox*ox + oy*oy > r*r)
 					continue;
 				
-				Creature other = world.creature( new Point(x + ox, y + oy, z) );
+				Creature other = world.creature(location().add(ox, oy, 0));
 				if (other == null)
 					continue;
 				others.add(other);
@@ -769,20 +888,19 @@ public class Creature implements Updatable, ObserverFOV{
 	}
 	
 	public void gainRegenMana() {
-		regenManaPer1000 += 5;
+		regenManaPer1000 += 1000;
 		doAction("you look more energetic");
 	}
 	
 	public void gainAttackValue() {
-		attackValue += 2;
+		attackValue += 1;
 		doAction("look stronger");
 	}
 	
 	public void gainDefenseValue() {
-		defenseValue += 2;
+		defenseValue += 1;
 		doAction("look tougher");
 	}
-	
 	
 	public void gainVision() {
 		visionRadius += 1;
@@ -836,27 +954,15 @@ public class Creature implements Updatable, ObserverFOV{
 	
 	/** Returns {@code true} if creature can detect an entity at this location. */
 	public boolean canDetect(Point p) {
-		return detectCreatures > 0 && world.creature(p) != null;
+//		return detectCreatures > 0 && world.creature(p) != null;
+		return ai.distanceTo(p) < detectCreatures && world.creature(p) != null && !(world.creature(p).ai() instanceof PlantAI);
 	}
 	
 	/** Returns {@code true} if could enter this location. */
 	public boolean canEnter(Point p) {
 		return world.tile(p).isGround() && world.creature(p) == null;
 	}
-	
-	/** {@code depth} defaults to {@code this.depth}
-	 * @param wx - world x
-	 * @param wy - world y
-	 * @see World#isInBounds(Point)
-	 */
-	public boolean isInBounds(int wx, int wy) {
-		return isInBounds(new Point(wx, wy, z));
-	}
-	/** @see World#isInBounds(Point) */
-	public boolean isInBounds(Point p) {
-		return world.isInBounds(p);
-	}
-	
+
 	/** Returns {@code true} if the {@linkplain Item} is equipped by this creature. */
 	public boolean isEquipped(Item item) {
 		return meleeWeapon == item || rangedWeapon == item ||  armor == item;
@@ -871,10 +977,17 @@ public class Creature implements Updatable, ObserverFOV{
 		ai.onNotify(String.format(message, params));
 	}
 	
+	public Color background() {
+		return (ward == null) ? background : Color.yellow;
+	}
+	
 	/** Returns a description of this creature. */
 	public String details() {
 		return String.format("     level:%d     attack:%d     defense:%d     hp:%d", level, attackValue(), defenseValue(), hp);
 	}
-
+	
+	public String toString() {
+		return name();
+	}
 	
 }

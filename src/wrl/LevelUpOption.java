@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * This abstract class can be extended to define a bonus to a {@linkplain Creature} for leveling up.

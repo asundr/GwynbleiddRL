@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.util.List;
 
@@ -14,6 +14,12 @@ public class Path {
 	private List<Point> points;
 	public List<Point> points() { return points; }
 	
+	/**
+	 * Makes a {@linkplain List} of {@linkplain Point}s that form a continuous path from a {@linkplain Creature} to a location ({@code x}, {@code y}).
+	 * @param creature - creature looking for a path to navigate
+	 * @param x - horizontal coordinate 
+	 * @param y - vertical coordinate
+	 */
 	public Path(Creature creature, int x, int y) {
 		points = pathFind(creature, x, y, 300);
 	}

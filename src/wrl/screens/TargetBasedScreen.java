@@ -1,10 +1,11 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.event.KeyEvent;
-import rltut.Creature;
-import rltut.Line;
-import rltut.Point;
+
 import asciiPanel.AsciiPanel;
+import wrl.Creature;
+import wrl.Line;
+import wrl.Point;
 
 public class TargetBasedScreen implements Screen {
 	

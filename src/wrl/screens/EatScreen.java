@@ -1,7 +1,7 @@
-package rltut.screens;
+package wrl.screens;
 
-import rltut.Creature;
-import rltut.Item;
+import wrl.Creature;
+import wrl.Item;
 
 /**
  * This class extends {@linkplain InventoryBasedScreen}. It allows the player to eat edible items in their inventory.

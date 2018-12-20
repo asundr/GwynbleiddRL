@@ -1,12 +1,13 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.Color;
 
 import asciiPanel.AsciiPanel;
-import rltut.Creature;
-import rltut.Line;
-import rltut.Point;
-import rltut.Spell;
+import wrl.Creature;
+import wrl.Line;
+import wrl.Point;
+import wrl.Spell;
+import wrl.Splash;
 
 /**
  * This class extends {@linkplain TargetBasedScreen}. It allows the player to target {@linkplain Spell}s.
@@ -16,7 +17,7 @@ import rltut.Spell;
 public class CastSpellScreen extends TargetBasedScreen {
 
 	private Spell spell;
-	private boolean[][] splash;
+	private Splash splash;
 	
 	/**
 	 * @param player - Entity from which this targets from
@@ -38,16 +39,16 @@ public class CastSpellScreen extends TargetBasedScreen {
 		if(spell.isArea() && player.canSee(target)) {
 			double direction = new Line(0, 0, x, y).radialAngle();
 			splash = spell.areaOfEffect((int)direction);
-			int top = sy - splash.length/2 + (spell.delivery()==Spell.Delivery.RADIAL  ? 0 : y);
-			int left = sx - splash.length/2 + (spell.delivery()==Spell.Delivery.RADIAL  ? 0 : x);
-			for (int i=0; i<splash.length; i++) {
-				for (int j=0; j < splash.length; j++) {
+			int top = sy - splash.size()/2 + (spell.delivery()==Spell.Delivery.RADIAL  ? 0 : y);
+			int left = sx - splash.size()/2 + (spell.delivery()==Spell.Delivery.RADIAL  ? 0 : x);
+			for (int i=0; i<splash.size(); i++) {
+				for (int j=0; j < splash.size(); j++) {
 					if (!isInScreen(top + i - sx, top + j - sy)) 
 						continue;
 					Point p = new Point(player.x() + left + i - sx, player.y() + top - sy + j, player.z());
-					if (splash[i][j] && player.tile(p).isGround() && player.canSee(p)) {
+					if (splash.get(i,j) && player.tile(p).isGround() && player.canSee(p)) {
 						char c = (player.creature(p) == null) ? '*' : player.creature(p).glyph();
-						Color col = i==splash.length/2 && j==splash.length/2 ? Color.MAGENTA : Color.RED;
+						Color col = i==splash.size()/2 && j==splash.size()/2 ? Color.MAGENTA : Color.RED;
 						terminal.write(c, left + i, top+j, col);
 					}
 				}
@@ -96,7 +97,7 @@ public class CastSpellScreen extends TargetBasedScreen {
 	 */
 	public boolean canSelect(int wx, int wy) {
 		if (spell.delivery() == Spell.Delivery.TARGET)
-			return player.creature(new Point(wx, wy, player.z())) != null;
+			return player.creature(new Point(wx, wy, player.z())) != null || player.canSee(new Point(wx, wy, player.z()));
 		return true;
 	}
 

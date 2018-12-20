@@ -1,12 +1,12 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import rltut.Creature;
-import rltut.LevelUpController;
 import asciiPanel.AsciiPanel;
+import wrl.Creature;
+import wrl.LevelUpController;
 
 /**
  * This screen displays the level-up bonus option of the player and allows they to select one for increase in level.

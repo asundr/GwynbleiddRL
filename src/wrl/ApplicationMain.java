@@ -1,9 +1,9 @@
-package rltut;
+package wrl;
 
 import javax.swing.JFrame;
 import asciiPanel.AsciiPanel;
-import rltut.screens.Screen;
-import rltut.screens.StartScreen;
+import wrl.screens.Screen;
+import wrl.screens.StartScreen;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;

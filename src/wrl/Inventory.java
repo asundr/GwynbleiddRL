@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * This class manages a collection of {@linkplain Item}s for a container class.
@@ -44,6 +44,15 @@ public class Inventory {
 				return true;
 		}
 		return false;
+	}
+	
+	/** Returns the number of items that have this name */
+	public int count(String name) {
+		int count = 0;
+		for (Item curr : items)
+			if (curr != null && curr.name().equals(name))
+				count++;
+		return count;
 	}
 	
 	/** Returns {@linkplain true} if there are no empty spaces in the inventory. */

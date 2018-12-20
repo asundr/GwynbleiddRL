@@ -1,7 +1,7 @@
-package rltut.screens;
+package wrl.screens;
 
-import rltut.Creature;
-import rltut.Item;
+import wrl.Creature;
+import wrl.Item;
 
 /**
  * This class extends {@linkplain InventoryBasedScreen}. Allows player to select an {@linkplain Item} to throw.

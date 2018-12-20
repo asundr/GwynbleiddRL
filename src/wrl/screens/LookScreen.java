@@ -1,10 +1,10 @@
-package rltut.screens;
+package wrl.screens;
 
-import rltut.Creature;
-import rltut.Grammar;
-import rltut.Item;
-import rltut.Point;
-import rltut.Tile;
+import wrl.Creature;
+import wrl.Grammar;
+import wrl.Item;
+import wrl.Point;
+import wrl.Tile;
 
 /**
  * This class extends {@linkplain TargetBasedScreen}. It allows the player to look and examine {@linkplain Tile}s and entities.

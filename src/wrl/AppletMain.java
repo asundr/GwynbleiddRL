@@ -1,10 +1,9 @@
-package rltut;
+package wrl;
 
 import java.applet.Applet;
 import asciiPanel.AsciiPanel;
-
-import rltut.screens.Screen;
-import rltut.screens.StartScreen;
+import wrl.screens.Screen;
+import wrl.screens.StartScreen;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -26,17 +25,20 @@ public class AppletMain extends Applet implements KeyListener {
 	
 	public void init() {
 		super.init();
-		this.setSize(terminal.getWidth() + 20, terminal.getHeight() + 20);
+		this.setSize(terminal.getWidth() + 10, terminal.getHeight() + 10);
+		setFocusable(true);
+		requestFocusInWindow();
 	}
 	
 	public void repaint() {
+		super.repaint();
 		terminal.clear();
 		screen.displayOutput(terminal);
-		super.repaint();
+		terminal.repaint();
 	}
 	
 	public void keyPressed(KeyEvent e) {
-		screen.respondToUserInput(e);
+		screen = screen.respondToUserInput(e);
 		repaint();
 	}
 	

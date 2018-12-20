@@ -1,4 +1,4 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.event.KeyEvent;
 import asciiPanel.AsciiPanel;
@@ -12,9 +12,23 @@ public class StartScreen implements Screen{
 
 	@Override
 	public void displayOutput(AsciiPanel terminal) {
-		terminal.write("Roguelike Pre-Alpha", 1 ,1);
-		terminal.writeCenter("-- press [enter] to start --", 20);
-		terminal.writeCenter("-- press [?] in game for help --", 22);
+		terminal.write("Alpha", 1 ,0);
+		terminal.writeCenter("-- press [enter] to start --", 24);
+		terminal.writeCenter("-- press [?] or [ESC] in game for help --", 26);
+		writeTitle(terminal);
+	}
+	
+	public void writeTitle(AsciiPanel terminal) {
+		int x = 12;
+		int y = 10;
+		
+		terminal.write(" __        __    _       _              ______ _      ", x, y++);
+		terminal.write("/ /   /\\   \\ \\ _| |     | |             | ___ \\ |     ", x, y++);
+		terminal.write("\\ \\  /  \\  / /(_) |_ ___| |__   ___ _ __| |_/ / |     ", x, y++);
+		terminal.write(" \\ \\/ /\\  / / | | __/ __| '_ \\ / _ \\ '__|    /| |     ", x, y++);
+		terminal.write("  \\  /  \\  /  | | || (__| | | |  __/ |  | |\\ \\| |____ ", x, y++);
+		terminal.write("   \\/    \\/   |_|\\__\\___|_| |_|\\___|_|  \\_| \\_\\_____/ ", x, y++);
+		
 	}
 
 	@Override
@@ -23,3 +37,22 @@ public class StartScreen implements Screen{
 	}
 		
 }
+
+/*
+
+ __        __    _       _              ______ _      
+/ /   /\   \ \ _| |     | |             | ___ \ |     
+\ \  /  \  / /(_) |_ ___| |__   ___ _ __| |_/ / |     
+ \ \/ /\  / / | | __/ __| '_ \ / _ \ '__|    /| |     
+  \  /  \  /  | | || (__| | | |  __/ |  | |\ \| |____ 
+   \/    \/   |_|\__\___|_| |_|\___|_|  \_| \_\_____/ 
+   
+ __        __    _       _              ______ _      
+/ /        \ \ _| |     | |             | ___ \ |     
+\ \   /\   / /(_) |_ ___| |__   ___ _ __| |_/ / |     
+ \ \_/  \_/ / | | __/ __| '_ \ / _ \ '__|    /| |     
+  \   /\   /  | | || (__| | | |  __/ |  | |\ \| |____ 
+   \_/  \_/   |_|\__\___|_| |_|\___|_|  \_| \_\_____/ 
+                    
+                 
+*/

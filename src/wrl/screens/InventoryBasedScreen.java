@@ -1,11 +1,12 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import rltut.Creature;
-import rltut.Item;
+
 import asciiPanel.AsciiPanel;
+import wrl.Creature;
+import wrl.Item;
 
 /**
  * This abstract class can be extended by screens that ask the player to select and use an {@linkplain Item} from a filtered {@linkplain Inventory}.
@@ -13,7 +14,7 @@ import asciiPanel.AsciiPanel;
 public abstract class InventoryBasedScreen implements Screen {
 	
 	protected Creature player;
-	private String letters;
+	protected String letters;
 	
 	/** Returns the verb used to describe the action of this {@linkplain InventoryBasedScreen} */
 	protected abstract String getVerb();
@@ -54,7 +55,7 @@ public abstract class InventoryBasedScreen implements Screen {
 	}
 	
 	/** Returns an {@linkplain ArrayList} of {@linkplain Item} names prefixed by a letter index. Equipped Items are labeled. */
-	private ArrayList<String> getList(){
+	protected ArrayList<String> getList(){
 		ArrayList<String> lines = new ArrayList<String>();
 		Item[] items =  player.inventory().items();
 		for (int i=0; i<items.length; i++) {

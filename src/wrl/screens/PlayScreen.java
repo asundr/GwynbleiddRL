@@ -1,4 +1,4 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import asciiPanel.AsciiPanel;
-
-import rltut.Creature;
-import rltut.StuffFactory;
-import rltut.Tile;
-import rltut.FieldOfView;
-import rltut.Item;
-import rltut.MessageHistory;
-import rltut.World;
-import rltut.WorldBuilder;
-import rltut.ObserverFOV;
-import rltut.Point;
+import wrl.Creature;
+import wrl.Effect;
+import wrl.FieldOfView;
+import wrl.Item;
+import wrl.MessageHistory;
+import wrl.ObserverFOV;
+import wrl.Point;
+import wrl.StuffFactory;
+import wrl.Tile;
+import wrl.World;
+import wrl.WorldBuilder;
 
 /**
  * This screen handles player input, world updates and display during gameplay. 
@@ -32,6 +32,10 @@ public class PlayScreen implements Screen {
 	private int screenWidth;
 	private int screenHeight;
 	private int depth = 10;
+	
+	private AsciiPanel terminal;
+	public AsciiPanel terminal() { return terminal; }
+	
 	private Creature player;
 	
 	private FieldOfView fov;
@@ -66,11 +70,6 @@ public class PlayScreen implements Screen {
 	/** Fills the {@linkplain World} with {@linkplain Item}s and {@linkplain Creature}s. */
 	private void createCreatures(StuffFactory factory) {
 		fov = new FieldOfView(world);
-		player = factory.newPlayer(messageHistory, fov, 0);
-		player.notify("You enter the cave...");
-		player.equip(factory.newBlueMageSpellbook(0));
-		player.equip(factory.newWhiteMageSpellbook(0));
-		for (int i=0; i<10; i++) player.equip(factory.newPotionOfPoison(0));
 		factory.newVictoryItem(depth - 1);
 		for (int z=0; z<depth; z++) {
 			
@@ -80,30 +79,81 @@ public class PlayScreen implements Screen {
 			for (int i=0; i< world.width()*world.height()/20; i++)
 				factory.newRock(z);
 			
-			for (int i=0; i<8; i++) 
-				factory.newFungus(null, z);
+//			for (int i=0; i<4; i++) {
+				factory.newWolfsbane(z);
+				factory.newHornwort(z);
+				factory.newWhiteMyrtle(z);
+				factory.newCrowsEye(z);
+				factory.newBlowall(z);
+				factory.newSewantMushroom(8, 0.02, z);
+//			}
 			
-			for (int i=0; i<20; i++)
+		}
+		
+		for (int i=0; i<10000; i++)
+			world.singleUpdate(null);
+		
+		player = factory.newPlayer(messageHistory, fov, 0);
+		player.notify("You enter the cave...");
+//		player.equip(factory.newBlueMageSpellbook(0));
+//		player.equip(factory.newWhiteMageSpellbook(0));
+//		player.equip(factory.newPotionWhiteRafford(0));
+//		player.equip(factory.newPotionSwallow(0));
+//		player.equip(factory.newPotionGoldenOriole(0));
+//		player.equip(factory.newPotionBlackBlood(0));
+//		player.equip(factory.newPotionThunderbolt(0));
+//		player.equip(factory.newPotoinBlizzard(0));
+//		player.equip(factory.newPotionCat(0));
+//		player.equip(factory.newPotionTawnyOwl(0));
+//		player.equip(factory.newPotionFullMoon(0));
+//		player.equip(factory.newPotionWhiteHoney(0));
+		
+//		for (int i=0; i<10; i++) player.equip(factory.newPotionOfPoison(0));
+		
+		
+		for (int z=0; z<depth; z++) {
+			for (int i=0; i<10; i++)
 				factory.newBat(z);
 			
-			for (int i=0; i< 3; i++)
-				factory.newZombie(z, player);
+//			for (int i=0; i< 3; i++)
+//				factory.newZombie(z, player);
+			
+			if (Math.random() > 0.5)
+				factory.newRockTroll(z, player);
+			else
+				factory.newIceTroll(z, player);
+			
+			if (Math.random() > 0.5)
+				factory.newRotfiend(z, player);
+			else
+				factory.newDevourer(z, player);
+			
+			if (Math.random() > 0.5)
+				factory.newAlp(z, player);
+			else
+				factory.newBruxa(z, player);
 			
 			for (int i=0; i<3; i++)
-				factory.randomPotion(z);
+				factory.newDrowner(z, player);
+			
+			for (int i=0; i<1; i++) 
+				factory.newDrownedDead(z,  player);
+			
+//			for (int i=0; i<3; i++)
+//				factory.randomPotion(z);
 			
 			factory.newGoblin(z, player);
 			
 		}
 //		for (int i=0; i<10; i++) factory.newBlueMageSpellbook(0);
-		boolean first = Math.random() < 0.5;
-		if (first) {
-			factory.newBlueMageSpellbook(  (int)(Math.random()*3)  );
-			factory.newWhiteMageSpellbook( (int)(Math.random()*3) + 3  );
-		} else {
-			factory.newBlueMageSpellbook(  (int)(Math.random()*3) + 3  );
-			factory.newWhiteMageSpellbook( (int)(Math.random()*3)  );
-		}
+//		boolean first = Math.random() < 0.5;
+//		if (first) {
+//			factory.newBlueMageSpellbook(  (int)(Math.random()*3)  );
+//			factory.newWhiteMageSpellbook( (int)(Math.random()*3) + 3  );
+//		} else {
+//			factory.newBlueMageSpellbook(  (int)(Math.random()*3) + 3  );
+//			factory.newWhiteMageSpellbook( (int)(Math.random()*3)  );
+//		}
 	}
 	
 	/** Constructs the {@linkplain World}.
@@ -155,9 +205,10 @@ public class PlayScreen implements Screen {
 	private void displayPlayerStats(AsciiPanel terminal) {
 		int y = 23;
 
-		terminal.write(hunger(), 1, y++, Color.ORANGE);
+//		terminal.write(hunger(), 1, y++, Color.ORANGE);
 		terminal.write(String.format("hp %4d/%4d", player.hp(), player.maxHP()), 1, y++);
 		terminal.write(String.format("mp %4d/%4d", player.mana(), player.maxMana()), 1, y++);
+		terminal.write(String.format("tox %3d/%3d", player.toxicity(), player.maxToxicity()), 1, y++);
 		if (player.armor() != null)
 			terminal.write(player.armor().name(), 1, y++);
 		if (player.meleeWeapon() != null)
@@ -165,16 +216,33 @@ public class PlayScreen implements Screen {
 		if (player.rangedWeapon() != null)
 			terminal.write(player.rangedWeapon().name(), 1, y++);
 		
+		int count = 0, x = 17;
+		for (Effect e : player.effects()) {
+			if (e.isPotionEffect() && e.color() != null) {
+				terminal.write(""+(char)168, x-count/6, 23 + count%6, e.color());
+				count++;
+			}
+		}
 	}
 	
 	/** Returns the world position of the left of the screen. */
 	public int getScrollX() {
-		return Math.max(0, Math.min(player.x() - screenWidth/2, world.width() - screenWidth));
+//		return Math.max(0, Math.min(player.x() - screenWidth/2, world.width() - screenWidth));
+		return getScrollX(player.x());
 	}
 	
 	/** Returns the world position of the top of the screen. */
 	public int getScrollY() {
-		return Math.max(0,	Math.min(player.y() - screenHeight/2, world.height() - screenHeight));
+//		return Math.max(0,	Math.min(player.y() - screenHeight/2, world.height() - screenHeight));
+		return getScrollY(player.y());
+	}
+	
+	public int getScrollX(int x) {
+		return Math.max(0, Math.min(x - screenWidth/2, world.width() - screenWidth));
+	}
+	
+	public int getScrollY(int y) {
+		return Math.max(0,	Math.min(y - screenHeight/2, world.height() - screenHeight));
 	}
 	
 	/**
@@ -187,19 +255,20 @@ public class PlayScreen implements Screen {
 	private void displayTiles(AsciiPanel terminal, int left, int top, int depth) {
 		fov.update(player.location(), player.visionRadius());
 		for (ObserverFOV obs : observers) {
-			fov.addFOV(obs.updateFOV(), player.z());
+			if (obs.location().z == player.z())
+				fov.addFOV(obs.updateFOV(), player.z());
+//			fov.addFOV(obs.updateFOV(), obs.location().z);
 		}
 		Point location = new Point(-1, -1, depth);
 		for(int x = 0; x < screenWidth; x++) {
 			for (int y=0; y<screenHeight; y++) {
-				location.x = x + left;
-				location.y = y + top;
 				
+				location = new Point(x + left, y + top, location.z);
 				
 				if (player.canSee(location)) {
-					terminal.write(world.glyph(location),x, y, fov.visibleColor(location), world.backgroundColor(location));
+					terminal.write(world.glyph(location, player),x, y, fov.visibleColor(location, player), world.backgroundColor(location));
 				} else if (player.canDetect(location)) {
-					terminal.write(world.glyph(location), x, y, Color.darkGray);
+					terminal.write(world.glyph(location, player), x, y, Color.darkGray);
 				} else {
 					terminal.write(fov.tile(location).glyph(), x, y, Color.darkGray.darker());
 				}
@@ -209,6 +278,8 @@ public class PlayScreen implements Screen {
 	
 	@Override
 	public void displayOutput(AsciiPanel terminal) {
+		if (this.terminal == null)
+			this.terminal = terminal;
 		int left = getScrollX();
 		int top = getScrollY();
 		displayTiles(terminal, left, top, player.z());
@@ -218,6 +289,14 @@ public class PlayScreen implements Screen {
 	    
 	    if (subscreen != null)
 	    	subscreen.displayOutput(terminal);
+	}
+	
+	/** Displays tiles for other screens. */
+	public void displayOutput(AsciiPanel terminal, int left, int top) {
+		displayTiles(terminal, left, top, player.z());
+		displayPlayerStats(terminal);
+	    displayBorder(terminal);
+	    displayMessages(terminal);
 	}
 	
 	/** Returns a short description of the player's hunger. */
@@ -235,6 +314,7 @@ public class PlayScreen implements Screen {
 
 	@Override
 	public Screen respondToUserInput(KeyEvent key) {
+		int ap = player.ap();
 		int level = player.level();
 		int invalidCount = 0;
 		int invalidMax = 2;
@@ -263,6 +343,8 @@ public class PlayScreen implements Screen {
 			case KeyEvent.VK_X: subscreen = new ExamineScreen(player); break;
 			case KeyEvent.VK_R: subscreen = new ReadScreen(player, player.x() - getScrollX(), player.y() - getScrollY()); break;
 			case KeyEvent.VK_T: subscreen = new ThrowScreen(player, player.x() - getScrollX(), player.y() - getScrollY()); break;
+			case KeyEvent.VK_Z: subscreen = new AlchemyScreen(player); break;
+			case KeyEvent.VK_ESCAPE: subscreen = new HelpScreen(); break;
 			case KeyEvent.VK_F: if (player.rangedWeapon() == null) {
 									player.notify("You don't have a ranged weapon to shoot with");
 									invalidCount = invalidMax;
@@ -302,11 +384,13 @@ public class PlayScreen implements Screen {
 			}
 		}
 		
-		if (subscreen == null && invalidCount < invalidMax)
+		
+		
+		if (subscreen == null && (player.ap() < ap || invalidCount < invalidMax))
 			world.update(player);
 		
-		if (player.hp() < 1)
-			subscreen= new LoseScreen(player);
+		if (player.hp() < 1 && invalidCount < invalidMax)
+			return new LoseScreen(world, player, this);
 		
 		if (player.level() > level)
 			subscreen = new LevelUpScreen(player, player.level() - level);
@@ -325,7 +409,7 @@ public class PlayScreen implements Screen {
 			if (item != null && item.name().equals("Monster trophy"))
 				return new WinScreen();
 		player.modifyHP(0, "cowardice");
-		return new LoseScreen(player);
+		return new LoseScreen(world, player, this);
 	}
 	
 }

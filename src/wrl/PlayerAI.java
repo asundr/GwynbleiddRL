@@ -1,4 +1,6 @@
-package rltut;
+package wrl;
+
+import java.util.ArrayList;
 
 /**
  * Determines how the player will respond to input and serves as the player's memory.
@@ -9,6 +11,7 @@ public class PlayerAI extends CreatureAI {
 	
 	private MessageHistory messageHistory;
 	private FieldOfView fov;
+	private ArrayList<Recipe> recipes;
 	
 	public PlayerAI (Creature creature, FieldOfView fov, MessageHistory messageHistory) {
 		super(creature);
@@ -27,7 +30,18 @@ public class PlayerAI extends CreatureAI {
 	
 	/** Sends notifications to the {@linkplain MessageHistory}. */
 	public void onNotify(String message) {
-		messageHistory.add(message);
+		if (!message.contains(creature.name() + " corpse"))
+			messageHistory.add(message);
+	}
+	
+	/** Sets the list of known recipies. */
+	public void setRecipes(ArrayList<Recipe> recipes) {
+		this.recipes = recipes;
+	}
+	
+	/** Returns a list of known recipies. */
+	public ArrayList<Recipe> recipes(){
+		return recipes;
 	}
 	
 	public boolean canSee(Point p) {

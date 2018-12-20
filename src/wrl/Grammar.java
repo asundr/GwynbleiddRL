@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * This class contains behavior for applying grammar to text.

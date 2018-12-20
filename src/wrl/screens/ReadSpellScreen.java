@@ -1,13 +1,13 @@
-package rltut.screens;
+package wrl.screens;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 import asciiPanel.AsciiPanel;
-import rltut.Creature;
-import rltut.Item;
-import rltut.Spell;
+import wrl.Creature;
+import wrl.Item;
+import wrl.Spell;
 
 /**
  * This screen displays the {@linkplain Spell}s that an {@linkplain Item} is capable of casting and lets the player select one to cast.

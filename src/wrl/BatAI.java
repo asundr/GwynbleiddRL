@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 /**
  * Defines the behavior for a bat.

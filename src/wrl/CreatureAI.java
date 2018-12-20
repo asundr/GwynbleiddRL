@@ -1,8 +1,9 @@
-package rltut;
+package wrl;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * This class should be extended to define the behavior for different types of {@linkplain Creature}s.
@@ -12,6 +13,8 @@ import java.util.Map;
  */
 public class CreatureAI {
 	protected Creature creature;
+	protected Point destination;
+	protected  Consumer<Creature> deathDrop;
 	
 	private Map<String, String> itemNames;
 	
@@ -69,6 +72,12 @@ public class CreatureAI {
 	/** Behavior to be performed when the {@linkplain Creature} dies. */
 	public void die() { }
 	
+	public void deathDrop() { if (deathDrop != null) deathDrop.accept(creature); }
+	
+	public void setDeathDrop( Consumer<Creature> deathDrop)  {
+		this.deathDrop = deathDrop;
+	}
+	
 	/** Return true if location {@code p} can be seen unobstructed within the vision radius. */
 	public boolean canSee(Point p) {
 		if (creature.z() != p.z)
@@ -89,6 +98,11 @@ public class CreatureAI {
 		return Tile.UNKNOWN;
 	}
 	
+	/** Returns the radial distance from this creature. */
+	protected double distanceTo(Point other) {
+		return other.subtract(creature.location()).magnitudeXY();
+	}
+	
 	/** Return true if {@code this} has a ranged weapon equipped and can see its {@code target}.  */
 	protected boolean canRangedWeaponAttack(Creature target) {
 		return creature.rangedWeapon() != null && creature.canSee(target.location());
@@ -103,7 +117,7 @@ public class CreatureAI {
 	protected Item getWeaponToThrow() {
 		Item toThrow = null;
 		for (Item item : creature.inventory().items()) {
-			if (item == null || item == creature.meleeWeapon() || item == creature.rangedWeapon()|| item == creature.armor())
+			if (item == null || item == creature.meleeWeapon() || item == creature.rangedWeapon() || item == creature.armor())
 				continue;
 			
 			if (toThrow == null || item.thrownAttackValue() > item.attackValue())
@@ -118,9 +132,11 @@ public class CreatureAI {
 	}
 	
 	/** Move towards a {@code target} to attack. */
-	public void hunt(Creature target) {
-		List<Point> points = new Path(creature, target.x(), target.y()).points();
+	public void hunt (Point target) {
+		List<Point> points = new Path(creature, target.x, target.y).points();
 		if (points == null || points.isEmpty()) {
+			if (target.equals(destination))
+					destination = null;
 			wander();
 			return;
 		}
@@ -128,6 +144,12 @@ public class CreatureAI {
 		int my = points.get(0).y - creature.y();
 		
 		creature.moveBy(mx, my, 0);
+		
+		if (creature.location().equals(target))
+			destination = null;
+		else
+			destination = new Point(target);
+			
 	}
 	
 	/** Returns {@code true} if {@linkplain Creature} owns better equipment than is currently equipped. */
@@ -173,7 +195,5 @@ public class CreatureAI {
 	public boolean canEnter(Point p) {
 		return creature.canEnter(p);
 	}
-	
-	// TODO hunt last known position
 
 }

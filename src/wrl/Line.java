@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +12,16 @@ public class Line implements Iterable<Point> {
 	
 	private List<Point> points;
 	public List<Point> getPoints(){ return points; }
+	
+	/**  
+	 * {@code depth} defaults to {@code p0.z}.
+	 * @param p0 - starting point
+	 * @param p1 - ending point
+	 * @see #Line(int x0, int y0, int x1, int y1, int depth)
+	 */
+	public Line(Point p0, Point p1) {
+		this(p0.x, p0.y, p1.x, p1.y, p0.z);
+	}
 	
 	/**
 	 * {@code depth} defaults to 0.
@@ -36,7 +46,7 @@ public class Line implements Iterable<Point> {
 	/**
 	 * Creates a line of {@linkplain Points} between two coordinates on the XY plane using 
 	 * <a href="https://en.wikipedia.org/wiki/Bresenham's_line_algorithm">Bresenham's line algorithm</a href>.
-	 * Works for lines in all quadrants.
+	 * Works for lines in all quadrants. Line includes start and end points.
 	 * @param x0 horizontal value of point 1
 	 * @param y0 vertical value of point 1
 	 * @param x1 horizontal value of point 2

@@ -1,9 +1,9 @@
-package rltut.screens;
+package wrl.screens;
 
 
-import rltut.Creature;
-import rltut.Grammar;
-import rltut.Item;
+import wrl.Creature;
+import wrl.Grammar;
+import wrl.Item;
 
 /**
  * This class extends {@linkplain InventoryBasedScreen}. It allows the player to look at and describe {@linkplain Item}s in their {@linkplain Inventory}.

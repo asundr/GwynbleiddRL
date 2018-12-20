@@ -1,4 +1,4 @@
-package rltut;
+package wrl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +52,8 @@ public class Spell {
 	/** Returns a fresh list of {@linkplain Effect}s created by the {@code caster}
 	 * @param caster - the {@linkplain Creature} that created the {@linkplain Effect}s. If no caster, pass {@code null}. */
 	public List<Effect> effects(Creature caster) {
+		if (this.effects == null)
+			return null;
 		List<Effect> effects = new ArrayList<Effect>();
 		for (Effect e : this.effects) {
 			Effect clone = (Effect) e.clone();
@@ -61,14 +63,49 @@ public class Spell {
 		return effects;
 	}
 	
+	private List<Hazard> hazards;
+	/** Defaults {@code caster} to {@code null}.
+	 * @see #hazards(Creature) */
+	public List<Hazard> hazards() { return hazards(null); }
+	/** Returns a fresh list of {@linkplain Hazard}s created by the {@code caster}. */
+	public List<Hazard> hazards(Creature caster) {
+		if (this.hazards == null)
+			return null;
+		List<Hazard> hazards = new ArrayList<Hazard>();
+		for (Hazard h : this.hazards) {
+			Hazard clone = (Hazard) h.clone();
+			clone.setOwner(caster);
+			hazards.add(h);
+		}
+		return hazards;
+	}
+	
+	/** The unique effect ID for the HazardLink if it is not stackable. */
+	private int hazardLinkID;
+	
+	/** @see #Spell(String, int, double, int, Delivery, Hazard) */
+	public Spell(String name, int manaCost, Delivery delivery, Hazard hazard) {
+		this(name, manaCost, 1, 360, delivery, hazard);
+	}
+	
+	/** @see #Spell(String, int, double, int, Delivery, List, List) */
+	public Spell(String name, int manaCost, double radius , int degree, Delivery delivery, Hazard hazard) {
+		this(name, manaCost, radius, degree, delivery, null, Arrays.asList(hazard));
+	}
+	
 	/** @see {@link #Spell(String, int, double, int, Delivery, Effect)} */
 	public Spell(String name, int manaCost, Delivery delivery, Effect effect) {
 		this(name, manaCost, 1, 360, delivery, effect);
 	}
 	
-	/** @see #Spell(String, int, double, int, Delivery, List)*/
+	/** @see #Spell(String, int, double, int, Delivery, List, List)*/
 	public Spell(String name, int manaCost, double radius, int degree, Delivery delivery, Effect effect) {
-		this(name, manaCost, radius, degree, delivery, Arrays.asList(effect));
+		this(name, manaCost, radius, degree, delivery, Arrays.asList(effect), null);
+	}
+	
+	/** @see #Spell(String, int, double, int, Delivery, List, List)*/
+	public Spell(String name, int manaCost, double radius, int degree, Delivery delivery, Effect effect, Hazard hazard) {
+		this(name, manaCost, radius, degree, delivery, Arrays.asList(effect), Arrays.asList(hazard));
 	}
 	
 	/**
@@ -78,67 +115,77 @@ public class Spell {
 	 * @param degree - the degrees [0, 360] that are affected by splash
 	 * @param delivery - the way this spell is targeted
 	 * @param effects - the effects that this spell applies to a target
+	 * @param hazards - the hazards that this spell places at the target
 	 */
-	public Spell(String name, int manaCost, double radius, int degree, Delivery delivery, List<Effect> effects) {
+	public Spell(String name, int manaCost, double radius, int degree, Delivery delivery, List<Effect> effects, List<Hazard> hazards) {
 		this.name = name;
 		this.manaCost = manaCost;
-		this.effects = effects;
-		this.delivery = delivery;
 		this.radius = radius;
 		this.degree = degree;
-	}
-	
-	/** Returns a grid representing the shape of this Spell's splash damage range. Grid will always have odd dimensions, ensuring the target is at the center.
-	 * @param aimedDeg - the degree from from the +x axis that the Spell is aimed towards.*/
-	public boolean[][] areaOfEffect(int aimedDeg){
-		int r = (int) Math.ceil(radius + 1);
-		int len = 2*r - 1;
-		
-		boolean[][] splash = new boolean[len][len];
-		for (int x=0; x<len; x++) {
-			for (int y=0; y<len; y++) {
-				if ((x-r+1)*(x-r+1) + (y-r+1)*(y-r+1) > radius*radius)
-					continue;
-				if (degree == 360 || isValidAngle(aimedDeg, 0, 0, x-r+1, y-r+1))
-					splash[x][y] = true;
+		this.delivery = delivery;
+		this.effects = effects;
+		this.hazards = hazards;
+		if (hazards != null)
+			this.hazardLinkID = Effect.newID();
+		if (effects != null)
+			for (Effect e : effects) {
+				if (e.stackable()) {
+					e.setID(Effect.newID());
+				}
 			}
+	}
+	
+	/** Applies the {@linkplain Effect}s and {@linkplain Hazard}s over the pre-calculated {@linkplain Splash} region of this spell. */
+	public void apply(Point location, Splash splash, World world, Creature caster) {
+		if (effects != null && !effects.isEmpty())
+			splash.applyEffects(world, location, effects(caster));
+		if (hazards != null && !hazards.isEmpty()) {
+			List<Hazard> newHazards = hazards(caster);
+			caster.addEffect( new HazardLink(world, newHazards, location, splash) );
 		}
-		
-		if (delivery == Delivery.RADIAL)
-			splash[r-1][r-1] = false;
-		
-		return splash;
 	}
 	
-	/**
-	 * Returns {@code true} if the line from (cx,cy) to (x,y) is within degree/2 of the aimedDegree
-	 * @param aimedDeg - direction this spell is being cast
-	 * @param cx - x coordinate of the radial center
-	 * @param cy - y coordinate of the radial center
-	 * @param x - x coordinate of a point that terminates a line from the center
-	 * @param y - y coordinate of a point that terminates a line from the center
-	 * @return
-	 */
-	private boolean isValidAngle(int aimedDeg, int cx, int cy, int x, int y) {
-		int leftDeg = aimedDeg + degree/2;
-		int rightDeg = aimedDeg - degree/2;
-		double angle = new Line(cx, cy, x, y).radialAngle();
-		
-		if (leftDeg > 360)
-			return angle >= rightDeg || angle <= leftDeg-360;
-		else if (rightDeg < 0)
-			return angle <= leftDeg || angle >= rightDeg+360;
-		else
-			return angle <= leftDeg && angle >= rightDeg;
+	/** Returns a {@linkplain Splash} object representing the shape of this Spell's splash damage range.
+	 * @param aimedDeg - the degree from from the +x axis that the Spell is aimed towards.*/
+	public Splash areaOfEffect(int aimedDegree) {
+		return new Splash(radius, degree, aimedDegree, delivery);
 	}
 	
-	
+
 	/** Enumerates the conditions for which spells can be delivered. */
 	public enum Delivery{
 		SELF,		// Can target caster
 		RADIAL,		// Area affect w/o center. Can be partial wedge of circle
 		AIMED, 		// Can fire at any tile in LOS
 		TARGET, 	// Can fire at any detected creature
+	}
+	
+	
+	/** Effect used to link {@linkplain Hazard}s to their caster to ensure the Spell's hazards wear off. */
+	private class HazardLink extends Effect {
+		
+		private List<Hazard> hazards;
+		private World world;
+		private Point location;
+		private Splash splash;
+		
+		public HazardLink(World world, List<Hazard> hazards, Point location, Splash splash) {
+			super(null, 0, hazardLinkID);
+			this.world = world;
+			this.hazards = hazards;
+			this.location = location;
+			this.splash = splash;
+			for (Hazard h : hazards) if (duration < h.duration()) duration = h.duration();
+		}
+		
+		public void start(Creature cTarget) {
+			caster = cTarget;
+			splash.applyHazards(world, location, hazards);
+		}
+		
+		public void end(Creature cTarget) {
+			splash.cleanUp(world);
+		}
 	}
 
 }
