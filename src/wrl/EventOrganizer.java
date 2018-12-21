@@ -1,6 +1,7 @@
 package wrl;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -29,7 +30,7 @@ public class EventOrganizer {
 	 * Will update the AP of all the entities in the queue if max AP falls below zero.
 	 * If a non-player entity updates without spending AP, will print a warning to the console.
 	 */
-	public void nextUpdate(Creature player) {
+	public void nextUpdate() {
 		Updatable curr = queue.first(); 
 		if (curr.ap() <= 0)
 			refreshAP();
@@ -41,8 +42,18 @@ public class EventOrganizer {
 		
 		if ( !curr.updatePending() )
 			remove(curr);
-		else if (ap == curr.ap() && curr!= player && curr instanceof Entity) {
+		else if (ap == curr.ap() && curr instanceof Entity &&  !((Entity)curr).isPlayer() ) {
 			System.out.println("WARNING: " + curr.getClass().getSimpleName() + " " + ((Entity) curr).name() + " has same AP = " + ap);
+		}
+	}
+	
+	/** Continues to update the queue until an Updatable is seen twice. */
+	public void updateEachOnce() {
+		HashSet<Updatable> seen = new HashSet<Updatable>();
+		Updatable curr;
+		while ( !seen.contains(curr = queue.first()) ) {
+			seen.add(curr);
+			nextUpdate();
 		}
 	}
 	

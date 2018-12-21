@@ -105,4 +105,8 @@ public abstract class Entity implements Updatable  {
 		return world.isInBounds(p);
 	}
 	
+	/** Returns {@code true} if creature is the player character */
+	public boolean isPlayer() {
+		return glyph == '@';
+	}
 }

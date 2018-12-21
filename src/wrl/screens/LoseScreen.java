@@ -65,18 +65,13 @@ public class LoseScreen implements Screen {
 		loopOnDeath = new Thread() {
 			public void run() {
 				while (loop) {
+					world.updateEachOnce();
 					displayOutput(terminal);
 					terminal.repaint();
 					try {
-						sleep(500);
+						sleep(250);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
-					}
-					for (int i=0; i<1000; i++) {
-						if (loop) {
-							world.singleUpdate(null);
-						} else 
-							break;
 					}
 				}
 			}

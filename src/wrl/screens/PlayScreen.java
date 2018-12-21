@@ -291,6 +291,12 @@ public class PlayScreen implements Screen {
 	    	subscreen.displayOutput(terminal);
 	}
 	
+	/** Writes output to a pre-stored AsciiPanel for display. */
+	public void displayOutput() {
+		if (terminal != null)
+			displayOutput(terminal);
+	}
+	
 	/** Displays tiles for other screens. */
 	public void displayOutput(AsciiPanel terminal, int left, int top) {
 		displayTiles(terminal, left, top, player.z());

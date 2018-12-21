@@ -29,6 +29,9 @@ public class HelpScreen implements Screen {
 		terminal.write("the surface to win. Use what you find to avoid dying.", 1, 4);
 		
 		int y = 6;
+		
+		terminal.write("To melee attack, walk into another creature.", 1, y++);
+		y++;
 		terminal.write("[g] or [,] to pick up", 2, y++);
 		terminal.write("[d] to drop", 2, y++);
 		terminal.write("[e] to eat", 2, y++);
@@ -47,7 +50,7 @@ public class HelpScreen implements Screen {
 		terminal.write("[End]  [PgDn] [+] to scroll texbox down", 2, y++);
 		
 		
-		terminal.writeCenter("          -- press any [ESC] to continue --    Symbols >>> ", 27);
+		terminal.writeCenter("                        -- press [ESC] to continue --          Symbols >>> ", 27);
 		terminal.repaint();
 	}
 	
@@ -55,8 +58,8 @@ public class HelpScreen implements Screen {
 		terminal.clear();
 		terminal.writeCenter("Symbols", 1);
 		
-		int y = 4;
-		terminal.write("< Stars up.    > Stairs down.    [ armor.    ) weapon.    , rock.", 2, y++);
+		int y = 3;
+		terminal.write("@ player    < Stars up     > Stairs down     [ armor     ) weapon     , rock", 2, y++);
 		y++;
 		terminal.write("  [b]  bats will ignore you but can bump into you.", 2, y++);
 		terminal.write("  [g]  goblins can use weapons and armor and throw items.", 2, y++);
@@ -79,7 +82,7 @@ public class HelpScreen implements Screen {
 		terminal.write("Petri's Philter: increase sign intensity [not implemented].", 2, y++);
 		
 		
-		terminal.writeCenter(" <<< Controls  -- press any [ESC] to continue --      ", 27);
+		terminal.writeCenter(" <<< Controls           -- press [ESC] to continue --                      ", 27);
 		terminal.repaint();
 	}
 

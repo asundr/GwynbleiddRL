@@ -11,6 +11,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import wrl.screens.PlayScreen;
+
 /**
  * The {@code World} class encapsulates the information and behavior about the {@linkplain Tile}s and entities in the game world.
  * @author Arun Sundaram
@@ -89,7 +91,7 @@ public class World {
 	public void update(Creature player) {
 		player.update();
 		while(!eventOrganizer.isNext(player) && !player.isDead())
-			eventOrganizer.nextUpdate(player);
+			eventOrganizer.nextUpdate();
 	}
 	
 	/** Updates the queue one Enity at a time. */
@@ -97,7 +99,28 @@ public class World {
 		if (eventOrganizer.isNext(player))
 			player.update();
 		else
-			eventOrganizer.nextUpdate(player);
+			eventOrganizer.nextUpdate();
+	}
+	
+	
+	/** Updates the {@code player}, then updates everything else until it's the {@code player}'s next turn. */
+	public void update(Creature player, PlayScreen playScreen) {
+		player.update();
+		while(!eventOrganizer.isNext(player) && !player.isDead()) {
+			eventOrganizer.updateEachOnce();
+			playScreen.displayOutput();
+//			try {
+//				Thread.sleep(50);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+		}
+	}
+	
+	/** Updates the the queue until an Entity requests a second Update. */
+	public void updateEachOnce() {
+		eventOrganizer.updateEachOnce();
 	}
 	
 	/** Adds a new {@linkplain Updatable} to the event organizer. */

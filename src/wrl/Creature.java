@@ -937,11 +937,6 @@ public class Creature extends Entity implements ObserverFOV {
 			return null;
 	}
 	
-	/** Returns {@code true} if creature is the player character */
-	public boolean isPlayer() {
-		return glyph == '@';
-	}
-	
 	/** Returns {@code true} if creature is currently dead. */
 	public boolean isDead() {
 		return hp < 1;
