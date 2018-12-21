@@ -1,6 +1,5 @@
 # WitcherRL
-
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/rAGe2vCt_Ts/0.jpg)](http://www.youtube.com/watch?v=rAGe2vCt_Ts "Video Title")
+[![IMAGE ALT TEXT](https://i.imgur.com/XmW9EYR.png)](http://www.youtube.com/watch?v=rAGe2vCt_Ts "Video Title")
 
 An alpha build of a roguelike game. To play, download and run WitherRL.jar or execute ApplicationMain.
 
