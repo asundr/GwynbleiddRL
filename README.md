@@ -6,10 +6,10 @@ An alpha build of a roguelike game. To play, download and run WitherRL.jar or ex
 In WitcherRL you descend into a procedurally generated system of caves using only your skills and what you find to bring a ~~MacGuffin~~ trophy back to the surface.
 
 ## Features
-#### Procedurally generatd world
+#### Procedurally Generated World
 Randomly generates a navigable cave system on every new game. The items found in these dungeons and its inhabitants are also random allowing for a variety of situations involving different combinations of foes in different environments. Parts of the cave can be modified at runtime such as by digging into the walls.
 
-#### Variable length turns
+#### Variable Length Turns
 Actions are turn based but permit entites to seem faster or slower by allowing for actions to take a variable amount of time. This means a following action will occur later if a preceding action has a high time cost.
 
 #### Creature AI
