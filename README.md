@@ -1,11 +1,11 @@
-# WitcherRL
+# GwynbleiddRL
 [![IMAGE ALT TEXT](https://i.imgur.com/XmW9EYR.png)](http://www.youtube.com/watch?v=rAGe2vCt_Ts "Video Title")
 
 ^^ Click the image to link to an ingame video! ^^
 
 An alpha build of a roguelike game. To play, download and run WitherRL.jar or execute ApplicationMain.
 
-In WitcherRL you descend into a procedurally generated system of caves using only your skills and what you find to bring a ~~MacGuffin~~ trophy back to the surface.
+In GwynbleiddRL you descend into a procedurally generated system of caves using only your skills and what you find to bring a ~~MacGuffin~~ trophy back to the surface.
 
 ## Features
 #### Procedurally Generated World
