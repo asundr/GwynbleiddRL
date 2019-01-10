@@ -3,7 +3,7 @@
 
 ^^ Click the image to link to an ingame video! ^^
 
-An alpha build of a roguelike game. To play, download and run WitherRL.jar or execute ApplicationMain.
+An alpha build of a roguelike game. To play, download and run GwynbleiddRL.jar or execute ApplicationMain.
 
 In GwynbleiddRL you descend into a procedurally generated system of caves using only your skills and what you find to bring a ~~MacGuffin~~ trophy back to the surface.
 
